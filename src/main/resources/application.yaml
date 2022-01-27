@@ -1,0 +1,21 @@
+kafka:
+  bootstrap:
+    servers: localhost:9091
+
+mp:
+  messaging:
+    incoming:
+      sensor-events:
+        connector: smallrye-kafka
+        topic: sensor-events
+        value:
+          #deserializer: io.drogue.cloud.demo.game.controller.events.model.EventDeserializer
+
+quarkus:
+  ssl:
+    native: true
+  log:
+    level: INFO
+  kafka:
+    health:
+      enabled: true
