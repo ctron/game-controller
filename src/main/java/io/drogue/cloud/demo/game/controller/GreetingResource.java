@@ -1,4 +1,4 @@
-package org.acme.getting.started;
+package io.drogue.cloud.demo.game.controller;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
