@@ -1,0 +1,57 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: game-controller
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"game-controller:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"app\")].image"}]'
+  labels:
+    app.kubernetes.io/name: game-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: game-controller
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: game-controller
+    spec:
+      enableServiceLinks: false
+      containers:
+        - name: app
+          image: game-controller
+          imagePullPolicy: Always
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /q/health/live
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /q/health/ready
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka-kafka-bootstrap.burrboard.svc:9092
+
+            - name: KAFKA_SASL_JAAS_CONFIG
+              value: org.apache.kafka.common.security.scram.ScramLoginModule required username="<replace>" password="<replace>";
+            - name: KAFKA_SASL_MECHANISM
+              value: SCRAM-SHA-512
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: SASL_PLAINTEXT
+
+            - name: DITTO_KEYCLOAK_URL
+              value: https://sso-drogue-dev.apps.wonderful.iot-playground.org/auth/realms/drogue
+            - name: DITTO_KEYCLOAK_REALM
+              value: drogue
+            - name: DITTO_API_URL
+              value: https://ditto-drogue-dev.apps.wonderful.iot-playground.org/api/2
+            - name: DITTO_API_CLIENT_ID
+              value: <replace>
+            - name: DITTO_API_CLIENT_SECRET
+              value: <replace>

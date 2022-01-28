@@ -1,0 +1,20 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: game-controller
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: game-controller:latest
+  source:
+    git:
+      ref: main
+      uri: https://github.com/ctron/game-controller
+  strategy:
+    sourceStrategy:
+      from:
+        kind: DockerImage
+        name: "registry.access.redhat.com/ubi8/openjdk-11:latest"
+  triggers:
+    - type: ConfigChange
