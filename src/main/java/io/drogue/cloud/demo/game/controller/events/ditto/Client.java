@@ -1,6 +1,10 @@
 package io.drogue.cloud.demo.game.controller.events.ditto;
 
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -13,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import io.quarkus.runtime.Startup;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.OAuth2Options;
@@ -93,9 +98,56 @@ public class Client {
                 .addPathSegment("desiredProperties")
                 .build().toString();
 
+        final var json = JsonObject.mapFrom(value);
+        final var condition = buildCondition(String.format("features/%s/desiredProperties", feature), json);
+
         return this.client.putAbs(url)
                 .addQueryParam("channel", "twin")
-                .sendJson(value);
+                .addQueryParam("condition", condition)
+                .sendJsonObject(json);
+    }
+
+    static String buildCondition(final String prefix, final JsonObject value) {
+
+        return expand(prefix, value)
+                .map(entry -> String.format("ne(%s,%s)",
+                        entry.name,
+                        entry.value)
+                )
+                .collect(Collectors
+                        .joining(",", "or(", ")"));
+
+    }
+
+    static class Pair {
+        final String name;
+        final String value;
+
+        Pair(final String name, final String value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
+
+    /*
+     * Deep expand an object into JSON pointer / value pairs.
+     */
+    static Stream<Pair> expand(final String prefix, final Object value) {
+        if (value == null) {
+            return Stream.of(new Pair(prefix, "null"));
+        } else if (value instanceof Boolean) {
+            return Stream.of(new Pair(prefix, Boolean.toString((Boolean) value)));
+        } else if (value instanceof Integer) {
+            return Stream.of(new Pair(prefix, Integer.toString((Integer) value)));
+        } else if (value instanceof Number) {
+            return Stream.of(new Pair(prefix, Double.toString(((Number) value).doubleValue())));
+        } else if (value instanceof String) {
+            return Stream.of(new Pair(prefix, '"' + URLEncoder.encode((String) value, StandardCharsets.UTF_8) + '"'));
+        } else {
+            return JsonObject.mapFrom(value).stream().flatMap(entry -> {
+                return expand(prefix + '/' + entry.getKey(), entry.getValue());
+            });
+        }
     }
 
 }
