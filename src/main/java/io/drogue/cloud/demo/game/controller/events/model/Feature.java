@@ -7,19 +7,29 @@ import com.google.common.base.MoreObjects;
 
 public class Feature {
     private Map<String, Object> properties = new HashMap<>();
+    private Map<String, Object> desiredProperties = new HashMap<>();
 
-    public void setProperties(Map<String, Object> properties) {
+    public void setProperties(final Map<String, Object> properties) {
         this.properties = properties;
     }
 
     public Map<String, Object> getProperties() {
-        return properties;
+        return this.properties;
+    }
+
+    public Map<String, Object> getDesiredProperties() {
+        return this.desiredProperties;
+    }
+
+    public void setDesiredProperties(final Map<String, Object> desiredProperties) {
+        this.desiredProperties = desiredProperties;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("properties", properties)
+                .add("properties", this.properties)
+                .add("desiredProperties", this.desiredProperties)
                 .toString();
     }
 }
