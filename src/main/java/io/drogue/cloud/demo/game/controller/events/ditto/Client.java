@@ -94,14 +94,16 @@ public class Client {
                 .addPathSegment("things")
                 .addPathSegment(thingId)
                 .addPathSegment("features")
-                .addPathSegment(feature)
-                .addPathSegment("desiredProperties")
+//                .addPathSegment(feature)
+//                .addPathSegment("desiredProperties")
                 .build().toString();
 
-        final var json = JsonObject.mapFrom(value);
+        final var json = new JsonObject()
+                .put(feature, new JsonObject()
+                        .put("desiredProperties", value));
         final var condition = buildCondition(String.format("features/%s/desiredProperties", feature), json);
 
-        return this.client.putAbs(url)
+        return this.client.patchAbs(url)
                 .addQueryParam("channel", "twin")
                 .addQueryParam("condition", condition)
                 .sendJsonObject(json);
