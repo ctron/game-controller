@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import io.quarkus.runtime.Startup;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -106,6 +107,7 @@ public class Client {
         return this.client.patchAbs(url)
                 .addQueryParam("channel", "twin")
                 .addQueryParam("condition", condition)
+                .putHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/merge-patch+json")
                 .sendJsonObject(json);
     }
 
